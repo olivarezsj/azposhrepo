@@ -23,7 +23,7 @@ if($deploymentType -eq "Resource"){
     $APPOU = "ou=APP,$($ServerOU)"
     $scriptblockcontent = {
         Param ($Arg1,$Arg2,$Arg3,$Arg4,$Arg5)
-        Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg1+"\"+$Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
+        Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
     }
     Set-Item WSMan:\localhost\Client\TrustedHosts -Value $CAIP -Force
     Invoke-Command -ComputerName $CAIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$CAIP,$PKIOU)
@@ -49,7 +49,7 @@ if($deploymentType -eq "Identity"){
     $ADFSOU = "ou=ADFS,$($ServerOU)"
     $scriptblockcontent = {
         Param ($Arg1,$Arg2,$Arg3,$Arg4,$Arg5)
-        Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg1+"\"+$Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
+        Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
     }
     Set-Item WSMan:\localhost\Client\TrustedHosts -Value $CAIP -Force
     Invoke-Command -ComputerName $CAIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$CAIP,$PKIOU)
