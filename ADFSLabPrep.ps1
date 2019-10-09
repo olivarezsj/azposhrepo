@@ -60,8 +60,10 @@ if($deploymentType -eq "Identity"){
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
 }
 if($deploymentType -eq "Workstation"){
-    $domusername = "$($username)@$($CAIP)"
     [array]$splitDom = $CAIP.split(".")
+    $domusername = "$($splitDom[1])\$($username)"
     $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
-    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential $creds -OUPath $ClientOU -Restart 
+    $joincreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
+    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential $joincreds -OUPath $ClientOU -Restart 
 }
+
