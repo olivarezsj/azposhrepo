@@ -1,9 +1,9 @@
 $deploymentType = $args[0]
 $username = $args[1]
 $password = $args[2]
-$CAIP = $args[3]
-$ADFSIP = $args[4]
-$APPIP = $args[5]
+$option1 = $args[3]
+$option2 = $args[4]
+$option3 = $args[5]
 $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
 
@@ -26,15 +26,15 @@ if($deploymentType -eq "Resource"){
         Param ($Arg1,$Arg2,$Arg3,$Arg4,$Arg5)
         Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
     }
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $CAIP -Force
-    Invoke-Command -ComputerName $CAIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$CAIP,$PKIOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $CAIP
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $ADFSIP -Force
-    Invoke-Command -ComputerName $ADFSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$ADFSIP,$ADFSOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $APPIP -Force
-    Invoke-Command -ComputerName $APPIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$APPIP,$APPOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $APPIP
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
+    Invoke-Command -ComputerName $option1 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option1,$PKIOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option1
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option2 -Force
+    Invoke-Command -ComputerName $option2 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option2,$ADFSOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option2
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option3 -Force
+    Invoke-Command -ComputerName $option3 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option3,$APPOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option3
 }
 if($deploymentType -eq "Identity"){
     Import-Module ActiveDirectory
@@ -52,18 +52,17 @@ if($deploymentType -eq "Identity"){
         Param ($Arg1,$Arg2,$Arg3,$Arg4,$Arg5)
         Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
     }
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $CAIP -Force
-    Invoke-Command -ComputerName $CAIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$CAIP,$PKIOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $CAIP
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $ADFSIP -Force
-    Invoke-Command -ComputerName $ADFSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$ADFSIP,$ADFSOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
+    Invoke-Command -ComputerName $option1 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option1,$PKIOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option1
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option2 -Force
+    Invoke-Command -ComputerName $option2 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option2,$ADFSOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option2
 }
 if($deploymentType -eq "Workstation"){
-    [array]$splitDom = $CAIP.split(".")
+    [array]$splitDom = $option1.split(".")
     $domusername = "$($splitDom[0])\$($username)"
     $ClientOU = "ou=Clients,dc=$($splitDom[0]),dc=$($splitDom[1])"
     $joincreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
-    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential $joincreds -OUPath $ClientOU -Restart 
+    Add-Computer -ComputerName localhost -DomainName $option1 -Credential $joincreds -OUPath $ClientOU -Restart 
 }
-
