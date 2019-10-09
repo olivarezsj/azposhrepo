@@ -63,7 +63,7 @@ if($deploymentType -eq "Workstation"){
     $domusername = "$($username)@$($CAIP)"
     [array]$splitDom = $CAIP.split(".")
     $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
-    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($username), (ConvertTo-SecureString $password -asplaintext -force)) -OUPath $ClientOU -Restart 
+    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($domusername), (ConvertTo-SecureString $password -asplaintext -force)) -OUPath $ClientOU -Restart 
 }
 
 
