@@ -61,8 +61,8 @@ if($deploymentType -eq "Identity"){
 }
 if($deploymentType -eq "Workstation"){
     [array]$splitDom = $CAIP.split(".")
-    $domusername = "$($splitDom[1])\$($username)"
-    $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
+    $domusername = "$($splitDom[0])\$($username)"
+    $ClientOU = "ou=Clients,dc=$($splitDom[0]),dc=$($splitDom[1])"
     $joincreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
     Add-Computer -ComputerName localhost -DomainName $CAIP -Credential $joincreds -OUPath $ClientOU -Restart 
 }
