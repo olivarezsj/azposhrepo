@@ -58,4 +58,12 @@ if($deploymentType -eq "Identity"){
     Invoke-Command -ComputerName $ADFSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$ADFSIP,$ADFSOU)
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
 }
+if($deploymentType -eq "Workstation"){
+    $CAIP = "resource.lab"
+    $domusername = "$($username)@$($CAIP)"
+    [array]$splitDom = $CAIP.split(".")
+    $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
+    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($username), (ConvertTo-SecureString $password -asplaintext -force)) -OUPath $ClientOU -Restart 
+}
+
 
