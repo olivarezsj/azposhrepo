@@ -7,8 +7,6 @@ $option3 = $args[5]
 $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
 
-
-
 if($deploymentType -eq "Resource"){
     Import-Module ActiveDirectory
     $domain = Get-ADDomain
@@ -65,4 +63,13 @@ if($deploymentType -eq "Workstation"){
     $ClientOU = "ou=Clients,dc=$($splitDom[0]),dc=$($splitDom[1])"
     $joincreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
     Add-Computer -ComputerName localhost -DomainName $option1 -Credential $joincreds -OUPath $ClientOU -Restart 
+}
+if($deploymentType -eq "PKI"){
+    Install-WindowsFeature Adcs-Cert-Authority -IncludeManagementTools
+}
+if($deploymentType -eq "ADFS"){
+    Install-windowsfeature adfs-federation –IncludeManagementTools
+}
+if($deploymentType -eq "APP"){
+    Install-WindowsFeature Web-Server,Web-Asp-Net,Windows-Identity-Foundation -IncludeManagementTools
 }
