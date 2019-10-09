@@ -59,7 +59,6 @@ if($deploymentType -eq "Identity"){
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
 }
 if($deploymentType -eq "Workstation"){
-    $CAIP = "resource.lab"
     $domusername = "$($username)@$($CAIP)"
     [array]$splitDom = $CAIP.split(".")
     $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
