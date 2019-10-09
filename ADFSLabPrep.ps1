@@ -8,8 +8,9 @@ $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
 
 
-Import-Module ActiveDirectory
+
 if($deploymentType -eq "Resource"){
+    Import-Module ActiveDirectory
     $domain = Get-ADDomain
     $domainFQDN = $domain.dnsroot
     $domusername = "$($domainFQDN)\$($username)"
@@ -36,13 +37,13 @@ if($deploymentType -eq "Resource"){
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $APPIP
 }
 if($deploymentType -eq "Identity"){
+    Import-Module ActiveDirectory
     $domain = Get-ADDomain
     $domainFQDN = $domain.dnsroot
     $domusername = "$($domainFQDN)\$($username)"
     New-ADOrganizationalUnit Servers -Path $domain.DistinguishedName
     New-ADOrganizationalUnit Clients -Path $domain.DistinguishedName
     $ServerOU = "ou=Servers,$($domain.DistinguishedName)"
-    $ClientOU = "ou=Clients,$($domain.DistinguishedName)"
     New-ADOrganizationalUnit PKI -Path $ServerOU
     New-ADOrganizationalUnit ADFS -Path $ServerOU
     $PKIOU = "ou=PKI,$($ServerOU)"
@@ -62,7 +63,6 @@ if($deploymentType -eq "Workstation"){
     $domusername = "$($username)@$($CAIP)"
     [array]$splitDom = $CAIP.split(".")
     $ClientOU = "ou=Clients,dc=$($splitDom[1]),dc=$($splitDom[0])"
-    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($domusername), (ConvertTo-SecureString $password -asplaintext -force)) -OUPath $ClientOU -Restart 
+    $wkscreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
+    Add-Computer -ComputerName localhost -DomainName $CAIP -Credential $wkscreds -OUPath $ClientOU -Restart 
 }
-
-
