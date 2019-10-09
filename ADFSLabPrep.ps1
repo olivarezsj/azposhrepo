@@ -3,7 +3,7 @@ $username = $args[1]
 $password = $args[2]
 $CAIP = $args[3]
 $ADFSIP = $args[4]
-$APPorWKSIP = $args[5]
+$APPIP = $args[5]
 $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
 
@@ -31,9 +31,9 @@ if($deploymentType -eq "Resource"){
     Set-Item WSMan:\localhost\Client\TrustedHosts -Value $ADFSIP -Force
     Invoke-Command -ComputerName $ADFSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$ADFSIP,$ADFSOU)
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $APPorWKSIP -Force
-    Invoke-Command -ComputerName $APPorWKSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$APPorWKSIP,$APPOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $APPorWKSIP
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $APPIP -Force
+    Invoke-Command -ComputerName $APPIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$APPIP,$APPOU)
+    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $APPIP
 }
 if($deploymentType -eq "Identity"){
     $domain = Get-ADDomain
@@ -57,8 +57,5 @@ if($deploymentType -eq "Identity"){
     Set-Item WSMan:\localhost\Client\TrustedHosts -Value $ADFSIP -Force
     Invoke-Command -ComputerName $ADFSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$ADFSIP,$ADFSOU)
     Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $ADFSIP
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $APPorWKSIP -Force
-    Invoke-Command -ComputerName $APPorWKSIP -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$APPorWKSIP,$ClientOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $APPorWKSIP
 }
 
