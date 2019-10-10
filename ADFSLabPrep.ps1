@@ -82,7 +82,6 @@ if($deploymentType -eq "Resource"){
     [System.GUID]$enrollGuid = (Get-ADObject -Identity "CN=Certificate-Enrollment,CN=Extended-Rights,CN=Configuration,$($domain.DistinguishedName)" -Properties rightsGuid).rightsGuid
     $certificateTemplate = Get-ADObject -Identity "CN=UpdatedWebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=resource,DC=lab"
     $ADFS_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option2).SID
-    $APP_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option3).SID
     $CertTempAcl = Get-ACL -Path ("AD:$($certificateTemplate.DistinguishedName)")
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ReadProperty, GenericExecute","Allow")) 
@@ -90,12 +89,6 @@ if($deploymentType -eq "Resource"){
     $ADFS_SID,"ExtendedRight","Allow",$autoenrollGuid))   
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ExtendedRight","Allow",$enrollGuid)) 
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ReadProperty, GenericExecute","Allow")) 
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ExtendedRight","Allow",$autoenrollGuid))   
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ExtendedRight","Allow",$enrollGuid)) 
     Set-ACL -ACLObject $acl -Path ("AD:$($ct.DistinguishedName)")
 
 }
