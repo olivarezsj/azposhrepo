@@ -182,11 +182,11 @@ if($deploymentType -eq "Workstation"){
     Add-Computer -ComputerName localhost -DomainName $option1 -Credential $joincreds -OUPath $ClientOU -Restart 
 }
 if($deploymentType -eq "PKI"){
-    Install-WindowsFeature Adcs-Cert-Authority -IncludeManagementTools
+    Install-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools
 }
 if($deploymentType -eq "ADFS"){
-    Install-windowsfeature adfs-federation –IncludeManagementTools
+    Install-WindowsFeature -Name Adfs-Federation –IncludeManagementTools
 }
 if($deploymentType -eq "APP"){
-    Install-WindowsFeature Web-Server,Web-Asp-Net,Windows-Identity-Foundation -IncludeManagementTools
+    Install-WindowsFeature -Name Web-Server,Web-Asp-Net,Windows-Identity-Foundation -IncludeManagementTools
 }
