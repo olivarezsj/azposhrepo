@@ -82,6 +82,7 @@ if($deploymentType -eq "Resource"){
     [System.GUID]$enrollGuid = (Get-ADObject -Identity "CN=Certificate-Enrollment,CN=Extended-Rights,CN=Configuration,$($domain.DistinguishedName)" -Properties rightsGuid).rightsGuid
     $certificateTemplate = Get-ADObject -Identity "CN=UpdatedWebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=resource,DC=lab"
     $ADFS_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option2).SID
+    $APP_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option3).SID
     $CertTempAcl = Get-ACL -Path ("AD:$($certificateTemplate.DistinguishedName)")
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ReadProperty, GenericExecute","Allow")) 
@@ -89,10 +90,17 @@ if($deploymentType -eq "Resource"){
     $ADFS_SID,"ExtendedRight","Allow",$autoenrollGuid))   
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ExtendedRight","Allow",$enrollGuid)) 
+    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
+    $APP_SID,"ReadProperty, GenericExecute","Allow")) 
+    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
+    $APP_SID,"ExtendedRight","Allow",$autoenrollGuid))   
+    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
+    $APP_SID,"ExtendedRight","Allow",$enrollGuid)) 
     Set-ACL -ACLObject $acl -Path ("AD:$($ct.DistinguishedName)")
 
 }
 if($deploymentType -eq "Identity"){
+    #Creates OU structure
     Import-Module ActiveDirectory
     $domain = Get-ADDomain
     $domainFQDN = $domain.dnsroot
@@ -156,7 +164,6 @@ if($deploymentType -eq "Identity"){
     [System.GUID]$enrollGuid = (Get-ADObject -Identity "CN=Certificate-Enrollment,CN=Extended-Rights,CN=Configuration,$($domain.DistinguishedName)" -Properties rightsGuid).rightsGuid
     $certificateTemplate = Get-ADObject -Identity "CN=UpdatedWebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=resource,DC=lab"
     $ADFS_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option2).SID
-    $APP_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option3).SID
     $CertTempAcl = Get-ACL -Path ("AD:$($certificateTemplate.DistinguishedName)")
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ReadProperty, GenericExecute","Allow")) 
@@ -164,12 +171,6 @@ if($deploymentType -eq "Identity"){
     $ADFS_SID,"ExtendedRight","Allow",$autoenrollGuid))   
     $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
     $ADFS_SID,"ExtendedRight","Allow",$enrollGuid)) 
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ReadProperty, GenericExecute","Allow")) 
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ExtendedRight","Allow",$autoenrollGuid))   
-    $CertTempAcl.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    $APP_SID,"ExtendedRight","Allow",$enrollGuid)) 
     Set-ACL -ACLObject $acl -Path ("AD:$($ct.DistinguishedName)")
     
 }
@@ -181,11 +182,11 @@ if($deploymentType -eq "Workstation"){
     Add-Computer -ComputerName localhost -DomainName $option1 -Credential $joincreds -OUPath $ClientOU -Restart 
 }
 if($deploymentType -eq "PKI"){
-    Install-WindowsFeature Adcs-Cert-Authority -IncludeManagementTools
+    Install-WindowsFeature "Adcs-Cert-Authority" -IncludeManagementTools
 }
 if($deploymentType -eq "ADFS"){
-    Install-windowsfeature adfs-federation –IncludeManagementTools
+    Install-windowsfeature "adfs-federation" –IncludeManagementTools
 }
 if($deploymentType -eq "APP"){
-    Install-WindowsFeature Web-Server,Web-Asp-Net,Windows-Identity-Foundation -IncludeManagementTools
+    Install-WindowsFeature "Web-Server,Web-Asp-Net,Windows-Identity-Foundation" -IncludeManagementTools
 }
