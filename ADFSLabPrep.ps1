@@ -4,9 +4,10 @@ $password = $args[2]
 $option1 = $args[3]
 $option2 = $args[4]
 $option3 = $args[5]
+if($username -ne $null){
 $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
-
+}
 
 
 if($deploymentType -eq "Resource"){
