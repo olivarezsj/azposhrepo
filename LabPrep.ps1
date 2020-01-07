@@ -48,6 +48,7 @@ if($deploymentType -eq "Workstation"){
     Add-Computer -ComputerName localhost -DomainName $option1 -Credential $joincreds -OUPath $ClientOU -Restart 
 }
 if($deploymentType -eq "PKI"){
+    Import-module servermanager
     Install-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools
 }
 if($deploymentType -eq "DeployEntCA"){
