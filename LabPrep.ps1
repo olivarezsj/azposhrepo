@@ -16,31 +16,47 @@ if($deploymentType -eq "Lab"){
     $domain = Get-ADDomain
     $domainFQDN = $domain.dnsroot
     $domusername = "$($domainFQDN)\$($username)"
-    New-ADOrganizationalUnit Clients -Path $domain.DistinguishedName
-    New-ADOrganizationalUnit Servers -Path $domain.DistinguishedName
-    $ServerOU = "ou=Servers,$($domain.DistinguishedName)"
-    New-ADOrganizationalUnit PKI -Path $ServerOU
-    New-ADOrganizationalUnit APP -Path $ServerOU
-
-    #OU Variables
-    $PKIOU = "ou=PKI,$($ServerOU)"
-    $APPOU = "ou=APP,$($ServerOU)"
-
-    #Joins Servers to Targeted Domain
     $scriptblockcontent = {
         Param ($Arg1,$Arg2,$Arg3,$Arg4,$Arg5)
         Add-Computer -ComputerName $Arg4 -DomainName $Arg1 -Credential (New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)) -OUPath $Arg5 -Restart -Passthru -Verbose
     }
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
-    Invoke-Command -ComputerName $option1 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option1,$PKIOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option1
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option2 -Force
-    Invoke-Command -ComputerName $option2 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option2,$APPOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option2
-    Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option3 -Force
-    Invoke-Command -ComputerName $option3 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option3,$APPOU)
-    Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option3
-    
+    try {
+        New-ADOrganizationalUnit Clients -Path $domain.DistinguishedName
+    }
+    catch {
+        Write-Output $_.Exception.Message
+    }
+    try {
+        New-ADOrganizationalUnit Servers -Path $domain.DistinguishedName
+    }
+    catch {
+        Write-Output $_.Exception.Message
+    }
+    $ServerOU = "ou=Servers,$($domain.DistinguishedName)"
+    try {
+        New-ADOrganizationalUnit PKI -Path $ServerOU
+        $PKIOU = "ou=PKI,$($ServerOU)"
+        Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
+        Invoke-Command -ComputerName $option1 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option1,$PKIOU)
+        Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option1
+    }
+    catch {
+        Write-Output $_.Exception.Message
+    }
+    try {
+        New-ADOrganizationalUnit APP -Path $ServerOU
+        $APPOU = "ou=APP,$($ServerOU)"
+        Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option2 -Force
+        Invoke-Command -ComputerName $option2 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option2,$APPOU)
+        Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option2
+        Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option3 -Force
+        Invoke-Command -ComputerName $option3 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option3,$APPOU)
+        Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option3
+    }
+    catch {
+        Write-Output $_.Exception.Message
+    }
+
     $CAInstcreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
     $CAInstallscriptblockcontent = {
         Param ($Arg1,$Arg2,$Arg3)
@@ -48,7 +64,7 @@ if($deploymentType -eq "Lab"){
         $CAcred = New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)
         Install-AdcsCertificationAuthority -CAType EnterpriseRootCa -CACommonName $CAName -Credential $CAcred -CryptoProviderName "ECDSA_P256#Microsoft Software Key Storage Provider" -KeyLength 256 -HashAlgorithmName SHA256
         }
-    Invoke-Command -ComputerName $option1 -Credential $CAInstcreds -ScriptBlock $CAInstallscriptblockcontent -ArgumentList ($deploymentType,$username,$password)
+    Invoke-Command -ComputerName $option1 -Credential $CAInstcreds -ScriptBlock $CAInstallscriptblockcontent -ArgumentList ($deploymentType,$domusername,$password)
     
     #Create new Certificate Template
     $WebServerCT = Get-ADObject -Identity "CN=WebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,$($domain.DistinguishedName)" -Properties *
