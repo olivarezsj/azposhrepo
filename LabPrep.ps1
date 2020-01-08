@@ -62,6 +62,7 @@ if($deploymentType -eq "Lab"){
         Param ($Arg1,$Arg2,$Arg3)
         $CAName = "$Arg1-RootCA"
         $CAcred = New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)
+        Import-module ADCSDeployment
         Install-AdcsCertificationAuthority -CAType EnterpriseRootCa -CACommonName $CAName -Credential $CAcred -CryptoProviderName "ECDSA_P256#Microsoft Software Key Storage Provider" -KeyLength 256 -HashAlgorithmName SHA256
         }
     Invoke-Command -ComputerName $option1 -Credential $CAInstcreds -ScriptBlock $CAInstallscriptblockcontent -ArgumentList ($deploymentType,$domusername,$password)
