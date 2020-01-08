@@ -57,15 +57,23 @@ if($deploymentType -eq "Lab"){
         Write-Output $_.Exception.Message
     }
 
-    $CAInstcreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
-    $CAInstallscriptblockcontent = {
-        Param ($Arg1,$Arg2,$Arg3)
-        $CAName = "$Arg1-RootCA"
-        $CAcred = New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)
-        Import-module ADCSDeployment
-        Install-AdcsCertificationAuthority -CAType EnterpriseRootCa -CACommonName $CAName -Credential $CAcred -CryptoProviderName "ECDSA_P256#Microsoft Software Key Storage Provider" -KeyLength 256 -HashAlgorithmName SHA256
-        }
-    Invoke-Command -ComputerName $option1 -Credential $CAInstcreds -ScriptBlock $CAInstallscriptblockcontent -ArgumentList ($deploymentType,$domusername,$password)
+    try {
+        Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
+        $CAInstcreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
+        $CAInstallscriptblockcontent = {
+            Param ($Arg1,$Arg2,$Arg3)
+            $CAName = "$Arg1-RootCA"
+            $CAcred = New-Object -Typename System.Management.Automation.PSCredential -Argumentlist ($Arg2), (ConvertTo-SecureString $Arg3 -asplaintext -force)
+            Import-module ADCSDeployment
+            Install-AdcsCertificationAuthority -CAType EnterpriseRootCa -CACommonName $CAName -Credential $CAcred -CryptoProviderName "ECDSA_P256#Microsoft Software Key Storage Provider" -KeyLength 256 -HashAlgorithmName SHA256
+            }
+        Invoke-Command -ComputerName $option1 -Credential $CAInstcreds -ScriptBlock $CAInstallscriptblockcontent -ArgumentList ($deploymentType,$domusername,$password)
+        Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option1
+    }
+    catch {
+        Write-Output $_.Exception.Message
+    }
+
     
     #Create new Certificate Template
     try {
@@ -101,7 +109,7 @@ if($deploymentType -eq "Lab"){
             #Modify permissions on new certificate template
     [System.GUID]$autoenrollGuid = (Get-ADObject -Identity "CN=Certificate-AutoEnrollment,CN=Extended-Rights,CN=Configuration,$($domain.DistinguishedName)" -Properties rightsGuid).rightsGuid
     [System.GUID]$enrollGuid = (Get-ADObject -Identity "CN=Certificate-Enrollment,CN=Extended-Rights,CN=Configuration,$($domain.DistinguishedName)" -Properties rightsGuid).rightsGuid
-    $certificateTemplate = Get-ADObject -Identity "CN=UpdatedWebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=resource,DC=lab"
+    $certificateTemplate = Get-ADObject -Identity "CN=UpdatedWebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,$($domain.DistinguishedName)"
     $APP1_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option2).SID
     $APP2_SID = New-Object System.Security.Principal.SecurityIdentifier (Get-ADComputer $option3).SID
     $CertTempAcl = Get-ACL -Path ("AD:$($certificateTemplate.DistinguishedName)")
