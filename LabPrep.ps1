@@ -4,6 +4,7 @@ $password = $args[2]
 $option1 = $args[3]
 $option2 = $args[4]
 $option3 = $args[5]
+$option4 = $args[6]
 if($username -ne $null){
 $securePassword =  ConvertTo-SecureString $password -AsPlainText -Force
 $creds = New-Object System.Management.Automation.PSCredential($username, $securePassword)
@@ -52,6 +53,9 @@ if($deploymentType -eq "Lab"){
         Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option3 -Force
         Invoke-Command -ComputerName $option3 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option3,$APPOU)
         Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option3
+        Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option4 -Force
+        Invoke-Command -ComputerName $option3 -Credential $creds -ScriptBlock $scriptblockcontent -ArgumentList ($domainFQDN,$domusername,$password,$option4,$APPOU)
+        Remove-Item WSMan:\localhost\Client\TrustedHosts -Include $option4
     }
     catch {
         Write-Output $_.Exception.Message
@@ -77,6 +81,7 @@ if($deploymentType -eq "Lab"){
     
     #Create new Certificate Template
     try {
+        Import-module ActiveDirectory
         $WebServerCT = Get-ADObject -Identity "CN=WebServer,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,$($domain.DistinguishedName)" -Properties *
         $CertTemplateAttributes = @{
             "flags"="131649";
