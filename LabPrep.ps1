@@ -60,7 +60,7 @@ if($deploymentType -eq "Lab"){
     catch {
         Write-Output $_.Exception.Message
     }
-
+<#
     try {
         Set-Item WSMan:\localhost\Client\TrustedHosts -Value $option1 -Force
         $CAInstcreds = New-Object System.Management.Automation.PSCredential($domusername, $securePassword)
@@ -136,7 +136,7 @@ if($deploymentType -eq "Lab"){
         Write-Output $_.Exception.Message
     }
 
-
+#>
 
 }
 if($deploymentType -eq "Workstation"){
